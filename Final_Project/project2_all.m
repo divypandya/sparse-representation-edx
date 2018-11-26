@@ -21,15 +21,15 @@ m = 2*imsize^2;
 
 % TODO: Set the percentage of known data
 % Write your code here... p = ????;
-p = 0.1;
+p = 0.4;
 
 % TODO: Set the noise std
 % Write your code here... sigma = ????;
-sigma = 0.1;
+sigma = 0.05;
 
 % TODO: Set the cardinality of the representation
 % Write your code here... true_k = ????;
-true_k = 15;
+true_k = 10;
 
 % Base seed - A non-negative integer used to reproduce the results
 % TODO: Set an arbitrary value for base_seed
@@ -84,7 +84,9 @@ for i=1:size(A,2)
     end
     
 end
- 
+
+
+
 %% Oracle Inpainting
  
 % Allocate a vector to store the PSNR results
@@ -101,23 +103,37 @@ for experiment = 1:num_experiments
     
     % TODO: Compute the subsampled dictionary
     % Write your code here... A_eff = ????;
-    
+    A_eff = C * A;
     
     % TODO: Compute the oracle estimation
     % Write your code here... x_oracle = ????;
-        
+    x_oracle = pinv(full(A_eff)) * b;
     
     % Compute the estimated image    
-    b_oracle = A*x_oracle;
+    b_oracle = A * x_oracle;
     
     % Compute the PSNR
     PSNR_oracle(experiment) = compute_psnr(b0, b_oracle);
     
 end
- 
+
+%%
+figure
+subplot(221);
+imshow(reshape(full(b0), imsize, imsize), [], 'InitialMagnification', 'fit')
+
+subplot(222)
+imshow(reshape(full(b0_noisy), imsize, imsize), [], 'InitialMagnification', 'fit')
+
+subplot(223)
+imshow(reshape(full(C' * b), imsize, imsize), [], 'InitialMagnification', 'fit')
+
+subplot(224)
+imshow(reshape(full(b_oracle), imsize, imsize), [], 'InitialMagnification', 'fit')
+
 % Display the average PSNR of the oracle
 fprintf('Oracle: Average PSNR = %.3f\n', mean(PSNR_oracle));
- 
+
 %% Greedy: OMP Inpainting
  
 % We will sweep over k = 1 up-to k = max_k and pick the best result
@@ -145,7 +161,7 @@ for experiment = 1:num_experiments
         x_omp = omp(A_eff_normalized, b, k_ind);
         
         % Un-normalize the coefficients
-        x_omp = x_omp./atoms_norm';
+        x_omp = x_omp ./ atoms_norm';
         
         % Compute the estimated image        
         b_omp = A*x_omp;
@@ -180,9 +196,9 @@ title(['OMP: PSNR vs. k, True Cardinality = ' num2str(true_k)]);
 % We will sweep over various values of lambda
 num_lambda_values = 10;
  
-% Allocate a vector to store the PSNR results obtained for the best lambda
+% Alloecate a vector to store the PSNR results obtained for the best lambda
 PSNR_admm_best_lambda = zeros(num_experiments,1);
- 
+
 % Loop over num_experiments
 for experiment = 1:num_experiments
     
@@ -199,6 +215,9 @@ for experiment = 1:num_experiments
     lambda_max = norm( A_eff_normalized'*b, 'inf' );
     lambda_vec = logspace(-5,0,num_lambda_values)*lambda_max;    
     psnr_admm_lambda = zeros(1,num_lambda_values);
+    
+    [~, p] = chol(A_eff_normalized'*A_eff_normalized);
+    p
     
     % Loop over various values of lambda
     for lambda_ind = 1:num_lambda_values
@@ -276,19 +295,19 @@ ylabel('PSNR [dB]'); xlabel('Algorithm');
  
 % TODO: Set the noise std
 % Write your code here... sigma = ????;
-
+% sigma = ...
 
 
 % TODO: Set the cardinality of the representation
 % Write your code here... true_k = ????;
-
+true_k = 5;
 
 
 % TODO: Create a vector of increasing values of p in the range [0.4 1]. The
 % length of this vector equal to num_values_of_p = 7.
 % Write your code here... num_values_of_p = ????; p_vec = ????;
-
-
+num_values_of_p = 7;
+p_vec = linspace(0.4, 1, num_values_of_p);
 
 
 % We will repeat the experiment for num_experiments realizations
@@ -323,7 +342,7 @@ for experiment = 1:num_experiments
                 
         % TODO: Compute the MSE of the estimate
         % Write your code here... cur_mse = ????;
-
+        % cur_mse = ...
         
                 
         % Compute the current normalized MSE and aggregate

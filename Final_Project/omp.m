@@ -11,9 +11,14 @@ x = zeros(size(CA,2),1);
 
 % TODO: Implement the OMP algorithm
 % Write your code here... x = ????;
-
-
-
-
+r = b;
+supp = [];
+for s = 1 : k
+    [~, idx] = max(abs(CA' * r));
+    supp = [supp idx];
+    CAs = full(CA(:, supp));
+    x(supp) = pinv(CAs) * b;
+    r = b - CA * x;
+end
 end
 

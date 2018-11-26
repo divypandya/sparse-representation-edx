@@ -33,8 +33,8 @@ m = size(CAtb);
 % of the x-update. Use Matlab's chol function and produce a lower triangular
 % matrix L, satisfying the equation M = L*L'
 % Write your code here... L = chol( ????, ???? );
-I = eye(m);
-L = chol(CA'*CA + I, 'lower');
+I = speye(m);
+L = chol(fullCA' * CA + I, 'lower');
 
 % Force Matlab to recognize the upper / lower triangular structure
 L = sparse(L);
