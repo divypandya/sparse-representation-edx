@@ -14,11 +14,11 @@ function [A_eff_normalized, atoms_norm] = compute_effective_dictionary(C, A)
 % TODO: Compute the subsampled dictionary
 % Write your code here... A_eff = ????;
 A_eff = C * A;
- 
+
 % TODO: Compute the norm of each atom
 % Write your code here...  atoms_norm = ????;
-tol = 10e-6;
-atoms_norm = sqrt(sum(A_eff.^2, 1)) + tol;
+atoms_norm = sqrt(sum(A_eff.^2, 1));
+atoms_norm(atoms_norm == 0) = eps;
  
 % TODO: Normalize the columns of A_eff, avoid division by zero
 % Write your code here...  A_eff_normalized = ????;

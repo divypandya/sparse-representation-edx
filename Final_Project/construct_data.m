@@ -26,7 +26,7 @@ n = sqrt(n_squared);
  
 % TODO: Draw at random the locations of the non-zeros
 % Write your code here... nnz_locs = ????;
-nnz_locs = randperm(n_squared, k);
+nnz_locs = randperm(m, k);
  
 % TODO: Draw at random the values of the coefficients
 % Write your code here... nnz_vals = ????;
@@ -61,11 +61,12 @@ b0_noisy = b0 + noise;
  
 % TODO: Create an identity matrix of size (n^2 x n^2)
 % Write your code here... I = ????;
-I = speye(n_squared, n_squared);
+I = speye(n_squared);
  
 % TODO: Draw at random the indices of rows to be kept
 % Write your code here... keep_inds = ????;
-keep_inds = sort(randperm(n_squared, round(p * n_squared)));
+% keep_inds = sort(randperm(n_squared, round(p * n_squared)));
+keep_inds = randperm(n_squared, round(p * n_squared));
  
 % TODO: Create the sampling matrix C of size (p*n^2 x n^2) by keeping rows
 % from I that correspond to keep_inds

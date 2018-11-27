@@ -12,7 +12,8 @@ x = zeros(size(CA,2),1);
 
 % TODO: Implement the Oracle estimator
 % Write your code here... x = ????;
-
+As = full(CA(:, s));
+x(s) = pinv(As) * b;
 
 end
 

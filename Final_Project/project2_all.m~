@@ -127,7 +127,6 @@ title('Noisy Image');
 subplot(133)
 imshow(reshape(full(C' * b), n, n), [], 'InitialMagnification', 'fit')
 title('Corrupted Image');
-
 %% Greedy: OMP Inpainting
  
 % We will sweep over k = 1 up-to k = max_k and pick the best result
@@ -163,10 +162,6 @@ for experiment = 1:num_experiments
         % Compute the current PSNR
         PSNR_omp(experiment, k_ind) = compute_psnr(b0, b_omp);
         
-        figure
-        imshow(reshape(full(b_omp), n, n), [], 'InitialMagnification', 'fit')
-        title(string(x))
-        
         % Save the best result of this realization, we will present it later
         if PSNR_omp(experiment, k_ind) == max(PSNR_omp(experiment, :))
             best_b_omp = b_omp;
@@ -187,7 +182,6 @@ psnr_omp_k = mean(PSNR_omp,1);
 figure; plot(1:max_k, psnr_omp_k, '-*r', 'LineWidth', 2);
 ylabel('PSNR [dB]'); xlabel('k'); grid on;
 title(['OMP: PSNR vs. k, True Cardinality = ' num2str(true_k)]);
-
 
 %%
 figure
@@ -293,7 +287,7 @@ imshow(reshape(full(b_oracle), n, n), [], 'InitialMagnification', 'fit')
 title('Oracle reconstruction');
 
 subplot(122)
-imshow(reshape(full(best_b_omp), n, n), [], 'InitialMagnification', 'fit')
+imshow(reshape(full(b_omp), n, n), [], 'InitialMagnification', 'fit')
 title('OMP reconstruction');
 
 %%
@@ -308,7 +302,7 @@ imshow(reshape(full(b0_noisy), n, n), [], 'InitialMagnification', 'fit')
 title('Noisy Image');
 
 subplot(223)
-imshow(reshape(full(best_b_admm), n, n), [], 'InitialMagnification', 'fit')
+imshow(reshape(full(b_admm), n, n), [], 'InitialMagnification', 'fit')
 title('ADMM reconstruction');
 
 subplot(224)
@@ -323,11 +317,11 @@ imshow(reshape(full(b_oracle), n, n), [], 'InitialMagnification', 'fit')
 title('Oracle reconstruction');
 
 subplot(132)
-imshow(reshape(full(best_b_omp), n, n), [], 'InitialMagnification', 'fit')
+imshow(reshape(full(b_omp), n, n), [], 'InitialMagnification', 'fit')
 title('OMP reconstruction');
 
 subplot(133)
-imshow(reshape(full(best_b_admm), n, n), [], 'InitialMagnification', 'fit')
+imshow(reshape(full(b_admm), n, n), [], 'InitialMagnification', 'fit')
 title('ADMM reconstruction');
 
 %% show the results
@@ -506,3 +500,7 @@ ylim([0.5*min(mse_omp_sigma) 5*max(mse_omp_sigma)]);
 ylabel('Normalized-MSE'); xlabel('sigma'); grid on;
 title(['OMP with k = ' num2str(true_k) ', Normalized-MSE vs. sigma']);
 
+
+%%
+imshow(reshape(full(b0), n, n), [], 'InitialMagnification', 'fit')
+title('Oracle reconstruction');

@@ -13,7 +13,6 @@ max_admm_iters = 100;
 % TODO: Compute the vector of inner products between the atoms and the signal
 % Write your code here... CAtb = ????;
 CAtb = CA' * b;
-m = size(CAtb);
 
 % In the x-update step of the ADMM we use the Cholesky factorization for
 % solving efficiently a given linear system Ax=b. The idea of this
@@ -33,7 +32,8 @@ m = size(CAtb);
 % of the x-update. Use Matlab's chol function and produce a lower triangular
 % matrix L, satisfying the equation M = L*L'
 % Write your code here... L = chol( ????, ???? );
-I = eye(m);
+m = size(CA, 2);
+I = speye(m);
 L = chol(CA'*CA + I, 'lower');
 
 % Force Matlab to recognize the upper / lower triangular structure
@@ -42,11 +42,11 @@ U = sparse(L');
  
 % TODO: Initialize v
 % Write your code here... v = ????;
-v = sparse(m, 1);
+v = zeros(m, 1);
  
 % TODO: Initialize u, the dual variable of ADMM
 % Write your code here... u = ????;
-u = sparse(m, 1);
+u = zeros(m, 1);
  
 % TODO: Initialize the previous estimate of v, used for convergence test
 % Write your code here... v_prev = ????;
@@ -61,17 +61,13 @@ for i = 1:max_admm_iters
     x = U \ (L \ (CAtb + v - u));
 
     % TODO: v-update via soft thresholding
-    % Write your code here... v = ????;
-    z = x + u; 
-    v = sparse(m, 1);
-    v(z < lambda) = z(z > lambda) + lambda;
-    v(z >= lambda) = z(z > lambda) - lambda;
+    % Write your code here... v = ????;    
+    v = wthresh(x + u, 's', lambda);
     
 
     % TODO: u-update according to the ADMM formula
     % Write your code here... u = ????;
     u = u + x - v;
-
     
     % Check if converged   
     if norm(v) && (norm((v - v_prev)) / norm(v)) < tol_admm
@@ -85,4 +81,3 @@ for i = 1:max_admm_iters
 end
  
 end
-
