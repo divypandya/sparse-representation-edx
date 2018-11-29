@@ -19,6 +19,7 @@ for s = 1 : k
     CAs = full(CA(:, supp));
     x(supp) = pinv(CAs) * b;
     r = b - CA * x;
+    % rnorm = norm(r);
 end
 end
 

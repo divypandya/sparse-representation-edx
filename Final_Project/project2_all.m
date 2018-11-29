@@ -28,7 +28,7 @@ true_k = 10;
 % Base seed - A non-negative integer used to reproduce the results
 % TODO: Set an arbitrary value for base_seed
 % Write your code here... base_seed = ????;
-base_seed = 4321;
+base_seed = 123;
 
 % Run the different algorithms for num_experiments and average the results
 num_experiments = 10;
@@ -39,8 +39,8 @@ num_experiments = 10;
 % TODO: initialize A with zeros
 % Write your code here... A = ????;
 A = sparse(n^2,m);
-w_lim = [floor(n/8) floor(n/2)];
-h_lim = [floor(n/8) floor(n/2)];
+wlim = [floor(n/8) floor(n/2)];
+hlim = [floor(n/8) floor(n/2)];
  
 % In this part we construct A by creating its atoms one by one, where
 % each atom is a rectangle of random size (in the range 5-20 pixels),
@@ -56,13 +56,13 @@ for i=1:size(A,2)
         
         % TODO: Create a rectangle of random size and position
         % Write your code here... atom = ????;
-        x = randi([1 n]);
-        y = randi([1 n]);
-        w = randi(w_lim);
-        h = randi(h_lim);
+        w = randi(wlim);  
+        h = randi(hlim); 
+        x = randi([1 n-h]);
+        y = randi([1 n-w]);
         sign = (rand() > 0.5) * 2 - 1;
-        atom = zeros(n, n);
-        atom(x:min(n, x+h), y:min(n, y+h)) = sign;     
+        atom = zeros(n);
+        atom(x:x+h, y:y+w) = sign;     
         % Verify that the atom is not empty or nearly so
         if norm(atom(:)) > 1e-5
             empty_atom_flag = 0;
@@ -78,9 +78,7 @@ for i=1:size(A,2)
     end
     
 end
-
-
-
+    
 %% Oracle Inpainting
  
 % Allocate a vector to store the PSNR results
@@ -162,10 +160,6 @@ for experiment = 1:num_experiments
         
         % Compute the current PSNR
         PSNR_omp(experiment, k_ind) = compute_psnr(b0, b_omp);
-        
-        figure
-        imshow(reshape(full(b_omp), n, n), [], 'InitialMagnification', 'fit')
-        title(string(x))
         
         % Save the best result of this realization, we will present it later
         if PSNR_omp(experiment, k_ind) == max(PSNR_omp(experiment, :))
