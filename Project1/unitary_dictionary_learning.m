@@ -29,7 +29,7 @@ mean_cardinality = zeros(num_iterations,1);
  
 % TODO: Set the dictionary to be D_init
 % Write your code here... D = ???;
-
+D = D_init;
 
  
 % Run the Procrustes analysis algorithm for num_iterations
@@ -48,9 +48,8 @@ for iter = 1 : num_iterations
     % where 'A' is a matrix that contains all the estimated coefficients,
     % and 'Y' contains the training examples. Use the Procrustes algorithm.
     % Write your code here... D = ???;
-
-    
-    
+    [U, ~, V] = svd(A*Y');
+    D = V*U';
     
 end
  

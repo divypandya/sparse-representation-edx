@@ -1,6 +1,5 @@
 clear; clc; close all;
 
-
 %% Part A: Data Construction and Parameter-Setting
 
 % Read an image
@@ -17,7 +16,7 @@ patch_size = [6 6];
 % TODO: Divide the image into FULLY overlapping patches using Matlab's
 % function 'im2col'.
 % Write your code here... all_patches = ???;
-
+all_patches = im2col(im, patch_size);
 
 % Number of patches to train on
 num_train_patches = 10000; 
@@ -26,7 +25,7 @@ num_test_patches = 5000;
 
 % TODO: Set the seed for the random generator
 % Write your code here... seed = ???;
-
+seed = 54327;
  
 % Set a fixed random seed to reproduce the results
 rng(seed);
@@ -34,18 +33,18 @@ rng(seed);
 % TODO: Create a training set by choosing a random subset 
 % of 'num_train_patches' taken from 'all_patches'
 % Write your code here... train_patches = ???;
-
-
+num_patches = length(all_patches);
+idxs = randperm(num_patches);
+train_patches = all_patches(:, idxs(1:num_train_patches));
  
 % TODO: Create a test set by choosing another random subset 
-% of 'num_test_patches' taken from the remaining pathces
+% of 'num_test_patches' taken from the remaining patches
 % Write your code here... test_patches = ???;
-
-
+test_patches = all_patches(:, idxs(num_train_patches+1:num_train_patches+num_test_patches));
  
 % TODO: Initialize the dictionary
 % Write your code here... D_DCT = build_dct_unitary_dictionary( ? );
-
+D_DCT = build_dct_unitary_dictionary(patch_size);
 
 
 % Show the unitary DCT dictionary
@@ -56,9 +55,8 @@ title('Unitary DCT Dictionary');
 % TODO: Set K - the cardinality of the solution.
 % This will serve us later as the stopping criterion of the pursuit
 % Write your code here... K = ???;
+K = 4;
 
-
- 
  
 %% Part B: Compute the Representation Error Obtained by the DCT Dictionary
  
@@ -83,7 +81,7 @@ fprintf('\n\n');
  
 % TODO: Set the number of training iterations
 % Write your code here... T = ???;
-
+T = 20;
 
  
 % Train a dictionary via Procrustes analysis
