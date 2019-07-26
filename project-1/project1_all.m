@@ -1,124 +1,162 @@
-clear; clc; close all;
-
-%% Part A: Data Construction and Parameter-Setting
-
-% Read an image
-im = imread('barbara.png'); 
-% Convert to double
-im = double(im); 
-
-% Show the image
-figure; imshow(im,[]); title('Original image');
-
-% Patch dimensions [height, width]
-patch_size = [6 6];
-
-% TODO: Divide the image into FULLY overlapping patches using Matlab's
-% function 'im2col'.
-% Write your code here... all_patches = ???;
-all_patches = im2col(im, patch_size);
-
-% Number of patches to train on
-num_train_patches = 10000; 
-% Number of patches to test on
-num_test_patches = 5000; 
-
-% TODO: Set the seed for the random generator
-% Write your code here... seed = ???;
-seed = 54327;
+% In this project we demonstrate the OMP and BP algorithms, by running them 
+% on a set of signals and checking whether they provide the desired outcome
  
-% Set a fixed random seed to reproduce the results
-rng(seed);
+%% Parameters
+ 
+% TODO: Set the length of the signal
+% Write your code here... n = ????;
+n = 50;
 
-% TODO: Create a training set by choosing a random subset 
-% of 'num_train_patches' taken from 'all_patches'
-% Write your code here... train_patches = ???;
-num_patches = length(all_patches);
-idxs = randperm(num_patches);
-train_patches = all_patches(:, idxs(1:num_train_patches));
+% TODO: Set the number of atoms in the dictionary
+% Write your code here... m = ????;
+m = 100;
+
+% TODO: Set the maximum number of non-zeros in the generated vector
+% Write your code here... s_max = ????;
+s_max = 15;
+
+% TODO: Set the minimal entry value
+% Write your code here... min_coeff_val = ????;
+min_coeff_val = 1;
+
+% TODO: Set the maximal entry value
+% Write your code here... max_coeff_val = ????;
+max_coeff_val = 3;
+
+% Number of realizations
+num_realizations = 200;
+
+% Base seed: A non-negative integer used to reproduce the results
+% TODO: Set an arbitrary value for base seed
+% Write your code here... base_seed = ????;
+base_seed = 4321;
+
+%% Create the dictionary
  
-% TODO: Create a test set by choosing another random subset 
-% of 'num_test_patches' taken from the remaining patches
-% Write your code here... test_patches = ???;
-test_patches = all_patches(:, idxs(num_train_patches+1:num_train_patches+num_test_patches));
- 
-% TODO: Initialize the dictionary
-% Write your code here... D_DCT = build_dct_unitary_dictionary( ? );
-D_DCT = build_dct_unitary_dictionary(patch_size);
+% TODO: Create a random matrix A of size (n x m)
+% Write your code here... A = ????;
+A = randn(n,m);
 
 
-% Show the unitary DCT dictionary
-figure(2);
-subplot(1,2,1); show_dictionary(D_DCT);
-title('Unitary DCT Dictionary');
- 
-% TODO: Set K - the cardinality of the solution.
-% This will serve us later as the stopping criterion of the pursuit
-% Write your code here... K = ???;
-K = 4;
+% TODO: Normalize the columns of the matrix to have a unit norm
+% Write your code here... A_normalized = ????;
+col_norm = sqrt(sum(A.^2, 1));
+A_normalized = A ./ col_norm;
 
- 
-%% Part B: Compute the Representation Error Obtained by the DCT Dictionary
- 
-% Compute the representation of each patch that belongs to the training set
-% using Thresholding
-[est_train_patches_dct, est_train_coeffs_dct] = ...
-    batch_thresholding(D_DCT, train_patches, K);
- 
-% Compute the representation of each patch that belongs to the test set
-% using Thresholding
-[est_test_patches_dct, est_test_coeffs_dct] = ...
-    batch_thresholding(D_DCT, test_patches, K);
- 
-% Compute and display the statistics
-fprintf('\n\nDCT dictionary: Training set, ');
-compute_stat(est_train_patches_dct, train_patches, est_train_coeffs_dct);
-fprintf('DCT dictionary: Testing  set, ');
-compute_stat(est_test_patches_dct, test_patches, est_test_coeffs_dct);
-fprintf('\n\n');
- 
-%% Part C: Procrustes Dictionary Learning
- 
-% TODO: Set the number of training iterations
-% Write your code here... T = ???;
-T = 20;
 
+%% Create data and run OMP and BP
  
-% Train a dictionary via Procrustes analysis
-[D_learned, mean_error, mean_cardinality] = ...
-    unitary_dictionary_learning(train_patches, D_DCT, T, K);
+% Nullify the entries in the estimated vector that are smaller than eps
+eps_coeff = 1e-4;
+% Set the optimality tolerance of the linear programing solver
+tol_lp = 1e-4;
  
-% Show the dictionary
-figure(2);
-subplot(1,2,2); show_dictionary(D_learned);
-title('Learned Unitary Dictionary');
+% Allocate a matrix to save the L2 error of the obtained solutions
+L2_error = zeros(s_max,num_realizations,2); 
+% Allocate a matrix to save the support recovery score
+support_error = zeros(s_max,num_realizations,2);
+           
+% Loop over the sparsity level
+for s = 1:s_max
+    
+    % Use the same random seed in order to reproduce the results if needed
+    rng(s+base_seed)
+    
+    % Loop over the number of realizations
+    for experiment = 1:num_realizations
+   
+        % In this part we will generate a test signal b = A_normalized*x by 
+        % drawing at random a sparse vector x with s non-zeros entries in 
+        % true_supp locations with values in the range of [min_coeff_val, max_coeff_val]
+        x = zeros(m,1);
+        
+        % TODO: Draw at random a true_supp vector
+        % Write your code here... true_supp = ????;
+        true_supp = randperm(m, s);
+        
+        % TODO: Draw at random the coefficients of x in true_supp locations
+        % Write your code here... x = ????;
+        rsign = (rand(s,1) > 0.5) * 2 - 1;
+        x(true_supp) = sparse(rsign .* ((max_coeff_val-min_coeff_val) ...
+            .* rand(s,1) + min_coeff_val));
+        
+        % TODO: Create the signal b
+        % Write your code here... b = ????;
+        b = A_normalized * x;
+        
+        % TODO: Run OMP
+        % Write your code here... x_omp = omp(????, ????, ????);
+        x_omp = omp(A_normalized, b, s);
+        x_omp(abs(x_omp) < eps_coeff) = 0;
+        
+        % TODO: Compute the relative L2 error
+        % Write your code here... L2_error(s,experiment,1) = ????;
+        L2_error(s, experiment, 1) = sum( (x_omp - x).^2 ) / sum(x.^2);
+        %L2_error(s, experiment, 1) = norm(x_omp - x)^2 / norm(x)^2;
+        
+        % TODO: Get the indices of the estimated support
+        % Write your code here... estimated_supp = ????;
+        estimated_supp = sum(abs(x_omp) > eps_coeff);
+        
+        % TODO: Compute the support recovery score
+        % Write your code here... support_error(s,experiment,1) = ????;
+        support_error(s,experiment,1) = ...
+            1 - sum((x ~= 0) & (abs(x_omp) > eps_coeff)) / ...
+            max(estimated_supp, s);
+        
+        % TODO: Run BP
+        % Write your code here... x_lp = lp(????, ????, ????);
+        x_lp = lp(A_normalized, b, tol_lp);
+        x_lp(abs(x_lp) < eps_coeff) = 0;
+        
+        % TODO: Compute the relative L2 error
+        % Write your code here... L2_error(s,experiment,2) = ????;
+        L2_error(s, experiment, 2) = sum( (x_lp - x).^2 ) / sum(x.^2);
+        %L2_error(s, experiment, 2) = norm(x_lp - x)^2 / norm(x)^2;
+        
+        % TODO: Get the indices of the estimated support, where the
+        % coeffecients are larger (in absolute value) than eps_coeff
+        % Write your code here... estimated_supp = ????;
+        estimated_supp = sum(abs(x_lp) > eps_coeff);
+        
+        % TODO: Compute the support recovery error
+        % Write your code here... support_error(s,experiment,2) = ????;
+        support_error(s,experiment,2) = ...
+            1 - sum((x ~= 0) & (abs(x_lp) > eps_coeff)) / ...
+            max(estimated_supp, s);
  
-% Show the representation error and the cardinality as a function of the
-% learning iterations
-figure(3);
-subplot(1,2,1); plot(1:T, mean_error, 'linewidth', 2);
-ylabel('Average Representation Error');
-xlabel('Learning Iteration');
-subplot(1,2,2); plot(1:T, mean_cardinality, 'linewidth', 2);
-ylabel('Average Number of Non-Zeros'); ylim([K-1 K+1]);
-xlabel('Learning Iteration');
+    end
+    
+end
  
-% Compute the representation of each signal that belong to the training set
-% using Thresholding
-[est_train_patches_learning, est_train_coeffs_learning] = ...
-    batch_thresholding(D_learned, train_patches, K);
+%% Display the results 
  
-% Compute the representation of each signal that belong to the testing set
-% using Thresholding
-[est_test_patches_learning, est_test_coeffs_learning] = ...
-    batch_thresholding(D_learned, test_patches, K);
+% Plot the average relative L2 error, obtained by the OMP and BP versus the cardinality
+figure(1); clf; 
+plot(1:s_max,mean(L2_error(1:s_max,:,1),2),'r','LineWidth',2); hold on;
+plot(1:s_max,mean(L2_error(1:s_max,:,2),2),'g','LineWidth',2); 
+xlabel('Cardinality of the true solution');
+ylabel('Average and Relative L_2-Error');
+set(gca,'FontSize',14);
+legend({'OMP','LP'});
+axis([0 s_max 0 1]);
  
-% Compute and display the statistics
-fprintf('\n\nLearned dictionary: Training set, ');
-compute_stat(est_train_patches_learning, train_patches, ...
-    est_train_coeffs_learning);
-fprintf('Learned dictionary: Testing  set, ');
-compute_stat(est_test_patches_learning, test_patches, ...
-    est_test_coeffs_learning);
-fprintf('\n\n');
- 
+% Plot the average support recovery score, obtained by the OMP and BP versus the cardinality
+figure(2); clf; 
+plot(1:s_max,mean(support_error(1:s_max,:,1),2),'r','LineWidth',2); hold on;
+plot(1:s_max,mean(support_error(1:s_max,:,2),2),'g','LineWidth',2); 
+xlabel('Cardinality of the true solution');
+ylabel('Probability of Error in Support');
+set(gca,'FontSize',14);
+legend({'OMP','LP'});
+axis([0 s_max 0 1]);
+
+% Comment:
+% L2-error Basis pursuit (LP) is superior to OMP giving a reasonable error
+% until the cardinality equals 7. For OMP that happens for a cardinality
+% equal to 5. Also LP manages to have relative error less than at least
+% until cardinality equal to 15.
+% 
+% Regarding the support recovery error, there is not a clear winner.
+% However OMP presents a smaller error for larger cardinalities,
+% which is better.
