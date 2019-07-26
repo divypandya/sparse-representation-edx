@@ -2,9 +2,9 @@
 
 ## Introduction
 
-Courses by edX, IsraelX, The Technion and Michael Elad:
+Courses by edX, IsraelX, The Technion - Israel Institute of Technology, and Michael Elad:
 
-- Sparse Representations in Image Processing: Fundamentals
+- Sparse Representations in Signal and Image Processing: Fundamentals
 - Sparse Representations in Image Processing: From Theory to Practice
 
 Learn the theory, tools and algorithms of sparse representations and their impact on signal and image processing.
